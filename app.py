@@ -17,7 +17,7 @@ app.config["JSON_SORT_KEYS"] = False
 db = SQLAlchemy(app)
 
 
-@app.route("/import", methods=["POST"])
+@app.route("/api/add", methods=["POST"])
 def pst():
     """_summary_
 
@@ -56,12 +56,13 @@ def gt():
     data = Data.query.all()
     # serialized data from database
     dic = {
-        i + 1: {x: y for x, y in list(vars(v).items())[1:]} for i, v in enumerate(data)
+        i + 1: {x: y for x, y in sorted(list(vars(v).items()))[1:-1]}
+        for i, v in enumerate(data)
     }
     return jsonify(dic)
 
 
-@app.route("/fit", methods=["POST"])
+@app.route("/api/fit", methods=["POST"])
 def model():
     """_summary_
 
@@ -91,7 +92,7 @@ def model():
     return jsonify({"Model learned": str(clf)})
 
 
-@app.route("/predict", methods=["POST"])
+@app.route("/api/predict", methods=["POST"])
 def prdct():
     """_summary_
 
@@ -115,11 +116,15 @@ def prdct():
         ]
     )
     ans = func(clf.estimators_, data)
+    for i in list(ans["ans"].keys()):
+        ans["ans"][sorted(list(vars(db.session.query(Data).first())))[1:-1][i]] = ans[
+            "ans"
+        ].pop(i)
     if clf.predict(data) == -1:
-        anomaly = "anomaly (-1)"
+        anomaly = "anomaly(-1)"
     elif clf.predict(data) == 1:
-        anomaly = "normal (1)"
-    return jsonify({"predict data class": anomaly, "features importance": ans["ans"]})
+        anomaly = "normal(1)"
+    return jsonify({"predicted class": anomaly, "features importances": ans["ans"]})
 
 
 def func(ens, X):
@@ -190,12 +195,15 @@ def func(ens, X):
     return dic
 
 
-def test():
-    """_summary_
+def restart_db():
+    """
+    func will restart current db and recreate test data
 
     Returns:
-        _type_: _description_
+        str: "all done", when complite
     """
+    db.drop_all()
+    db.create_all()
     # Generate train data
     rng = np.random.RandomState(42)
     X = 0.3 * rng.randn(100, 5)

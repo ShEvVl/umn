@@ -1,0 +1,35 @@
+POST http://localhost:5000/import HTTP/1.1
+content-type: application/json
+
+{
+    "feature_1": 50,
+    "feature_2": 52,
+    "feature_3": 54,
+    "feature_4": 56,
+    "feature_5": 58
+}
+
+###
+
+GET http://localhost:5000/check HTTP/1.1
+
+###
+
+POST http://localhost:5000/fit HTTP/1.1
+
+###
+
+POST http://localhost:5000/predict HTTP/1.1
+content-type: application/json
+
+{
+    "feature_1": -2.16598884,
+    "feature_2": 1.77802055,
+    "feature_3": 1.76029229,
+    "feature_4": 1.12918106,
+    "feature_5": 1.55158756
+}
+
+###
+
+GET http://localhost:5000/test HTTP/1.1

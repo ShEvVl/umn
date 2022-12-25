@@ -19,10 +19,11 @@ db = SQLAlchemy(app)
 
 @app.route("/api/add", methods=["POST"])
 def pst():
-    """_summary_
+    """
+    1st api is adding data to db
 
     Returns:
-        _type_: _description_
+        json(dict): added string of data in db
     """
     if not request.json:
         abort(400)
@@ -48,10 +49,11 @@ def pst():
 
 @app.route("/check", methods=["GET"])
 def gt():
-    """_summary_
+    """
+    function to view what inside db right now
 
     Returns:
-        _type_: _description_
+        json(dict): dict with all datas in db
     """
     data = Data.query.all()
     # serialized data from database
@@ -63,11 +65,12 @@ def gt():
 
 
 @app.route("/api/fit", methods=["POST"])
-def model():
-    """_summary_
+def ft():
+    """
+    2nd api is fitting model with all available data in db
 
     Returns:
-        _type_: _description_
+        json(dict): "Model learned": info about fitting model
     """
     with app.app_context():
         # collect data from database
@@ -94,10 +97,11 @@ def model():
 
 @app.route("/api/predict", methods=["POST"])
 def prdct():
-    """_summary_
+    """
+    3rd api is predicting result of model with feature importances
 
     Returns:
-        _type_: _description_
+        json(dict): get "anomaly(-1)" or "normal(1)" and descending features with amount
     """
     feature_1 = request.json["feature_1"]
     feature_2 = request.json["feature_2"]
@@ -128,14 +132,14 @@ def prdct():
 
 
 def func(ens, X):
-    """_summary_
-
+    """
+    function to create descending feature importances
     Args:
-        ens (_type_): _description_
-        X (_type_): _description_
+        ens (list): list of deciding trees
+        X (numpy.ndarray): data to predict model
 
     Returns:
-        _type_: _description_
+        dict: descending feature importances
     """
     dic = {}
     dic["ans"] = {}

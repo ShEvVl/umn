@@ -1,7 +1,7 @@
 import numpy as np
 from flask import Blueprint, jsonify, request, abort
 from app.models import db, Data
-from app.algorith import func
+from app.algorithm import func
 from sklearn.ensemble import IsolationForest
 
 main = Blueprint("main", __name__)

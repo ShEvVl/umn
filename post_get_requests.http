@@ -20,7 +20,7 @@ POST http://localhost:5000/api/fit HTTP/1.1
 content-type: application/json
 
 ### 3rd api to predict model with data you take
-
+### anomaly(-1)
 POST http://localhost:5000/api/predict HTTP/1.1
 content-type: application/json
 
@@ -30,4 +30,16 @@ content-type: application/json
     "feature_3": 1.76029229,
     "feature_4": 1.12918106,
     "feature_5": 1.55158756
+}
+
+### normal(1)
+POST http://localhost:5000/api/predict HTTP/1.1
+content-type: application/json
+
+{
+	"feature_1": 1.85386238,
+	"feature_2": 1.82228182,
+	"feature_3": 1.74080277,
+	"feature_4": 2.01455649,
+	"feature_5": 1.75071497
 }

@@ -1,0 +1,9 @@
+services:
+  app:
+    build: .
+    container_name: umn-docker
+    command: python run.py --reload --reload-include *
+    ports:
+      - 5000:81
+    volumes:
+      - .:/umn

@@ -4,12 +4,10 @@
 
 ## Для запуска выполнить:
 
-- загрузить необходимые библиотеки;
-- запустить сервер.
+
 
 ```shell
-    pip install -r requirements.txt
-    python run.py 
+    docker compose up --build
 ```
 Для проверки используется тестовая функция заполнения базы данных:
 
@@ -34,10 +32,11 @@
 - Предсказание модели по передаваемым данным http://localhost:5000/api/predict ["```POST```"].
   
 
-для упрощения запросов используется расширение vscode: ```REST Client```
+для упрощения запросов используется расширение ```VScode``` : ```REST Client``` или ```insomnia```
 <br />
-https://marketplace.visualstudio.com/items?itemName=humao.rest-client
-<br />
+- https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+- https://insomnia.rest/download
+
 Запросы записаны в файле ```post_get_requests.http```
 <br />
 также запросы можно создавать при помощи ```curl``` через ```Terminal``` или ```Comand```
@@ -62,7 +61,7 @@ curl -i -H "Content-Type: application/json" -X POST -d "{"""feature_1""": 2.1490
 curl -i -H "Content-Type: application/json" -X POST http://localhost:5000/api/fit
 ```
 
-- Предсказание модели по передаваемым данным http://localhost:5000/api/predict ["```POST```"].
+- Предсказание модели по передаваемым данным http://localhost:5000/api/predict ["```POST```"] (anomaly "-1").
 ### для ```Windows```:
 ```shell
 curl -i -H "Content-Type: application/json" -X POST -d "{"""feature_1""": -2.16598884, """feature_2""": 1.77802055, """feature_3""": 1.76029229, """feature_4""": 1.12918106, """feature_5""": 1.55158756}" http://localhost:5000/api/predict
@@ -70,4 +69,14 @@ curl -i -H "Content-Type: application/json" -X POST -d "{"""feature_1""": -2.165
 ### для ```Linux```:
 ```shell
 curl -i -H "Content-Type: application/json" -X POST -d "{"feature_1": -2.16598884, "feature_2": 1.77802055, "feature_3": 1.76029229, "feature_4": 1.12918106, "feature_5": 1.55158756}" http://localhost:5000/api/predict
+```
+
+- Предсказание модели по передаваемым данным http://localhost:5000/api/predict ["```POST```"] (normal "1").
+### для ```Windows```:
+```shell
+curl -i -H "Content-Type: application/json" -X POST -d "{"""feature_1""": 1.85386238, """feature_2""": 1.82228182, """feature_3""": 1.74080277, """feature_4""": 2.01455649, """feature_5""": 1.75071497}" http://localhost:5000/api/predict
+```
+### для ```Linux```:
+```shell
+curl -i -H "Content-Type: application/json" -X POST -d "{"feature_1": 1.85386238, "feature_2": 1.82228182, "feature_3": 1.74080277, "feature_4": 2.01455649, "feature_5": 1.75071497}" http://localhost:5000/api/predict
 ```

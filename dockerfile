@@ -1,11 +1,21 @@
-FROM python:3.11.1
+FROM python:latest
 
-WORKDIR /umn
+ENV PYTHONUNBUFFERED 1
 
-COPY ./requirements.txt /umn/
+ENV LC_ALL=C.UTF-8
+
+ENV LANG=C.UTF-8
+
+WORKDIR /app
+
+COPY ./requirements.txt /app/
+
+RUN pip install --upgrade pip
 
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-COPY . /umn/
+RUN apt-get update && apt-get install -y postgresql-client
+
+COPY . /app/
 
 CMD ["python", "run.py"]

@@ -1,13 +1,54 @@
 import numpy as np
 from flask import Blueprint, jsonify, request, abort
-from app.models import db, Data
+from app import db
+from app.models import Data
 from app.algorithm import func
 from sklearn.ensemble import IsolationForest
 
-main = Blueprint("main", __name__)
+
+routes = Blueprint("routes", __name__)
 
 
-@main.route("/api/add", methods=["POST"])
+@routes.route("/")
+def hello():
+    return {"hello": "world"}
+
+
+@routes.route("/api/data", methods=["POST", "GET"])
+def handle_data():
+    if request.method == "POST":
+        if request.is_json:
+            data = request.get_json()
+            new_data = Data(
+                feature_1=data["feature_1"],
+                feature_2=data["feature_2"],
+                feature_3=data["feature_3"],
+                feature_4=data["feature_4"],
+                feature_5=data["feature_5"],
+            )
+            db.session.add(new_data)
+            db.session.commit()
+            return {"message": f"data {new_data.id} has been created successfully."}
+        else:
+            return {"error": "The request payload is not in JSON format"}
+
+    elif request.method == "GET":
+        datas = Data.query.all()
+        results = [
+            {
+                "feature_1": value.feature_1,
+                "feature_2": value.feature_2,
+                "feature_3": value.feature_3,
+                "feature_4": value.feature_4,
+                "feature_5": value.feature_5,
+            }
+            for value in datas
+        ]
+
+        return {"count": len(results), "data": results}
+
+
+@routes.route("/api/add", methods=["POST"])
 def pst():
     """
     1st api is adding data to db
@@ -37,7 +78,7 @@ def pst():
     return jsonify(dic)
 
 
-@main.route("/check", methods=["GET"])
+@routes.route("/check", methods=["GET"])
 def gt():
     """
     function to view what inside db right now
@@ -54,7 +95,7 @@ def gt():
     return jsonify(dic)
 
 
-@main.route("/api/fit", methods=["POST"])
+@routes.route("/api/fit", methods=["POST"])
 def ft():
     """
     2nd api is fitting model with all available data in db
@@ -85,7 +126,7 @@ def ft():
     return jsonify({"Model learned": str(clf)})
 
 
-@main.route("/api/predict", methods=["POST"])
+@routes.route("/api/predict", methods=["POST"])
 def prdct():
     """
     3rd api is predicting result of model with feature importances

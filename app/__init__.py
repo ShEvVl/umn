@@ -1,17 +1,16 @@
+import os
 from flask import Flask
-from app.models import db, migrate
-from config import Config
-from app.routes import main
+from app.config import Config
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+db = SQLAlchemy()
+migrate = Migrate()
 
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     db.init_app(app)
-    app.register_blueprint(main)
-    with app.app_context():
-        if db.engine.url.drivername == "sqlite":
-            migrate.init_app(app, db, render_as_batch=True)
-        else:
-            migrate.init_app(app, db)
+    migrate.init_app(app, db)
     return app

@@ -14,3 +14,6 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = f"postgresql://{user}:{password}@{host}:{port}/{db}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JSON_SORT_KEYS = False
+
+
+clf_model_name = "/app/app/clf_model.pkl"

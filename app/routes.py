@@ -1,8 +1,10 @@
+import pickle
 import numpy as np
-from flask import Blueprint, jsonify, request, abort
+from flask import Blueprint, jsonify, request
 from app import db
 from app.models import Data
-from app.algorithm import func
+from app.utils import algorithm
+from app.config import clf_model_name
 from sklearn.ensemble import IsolationForest
 
 
@@ -48,53 +50,6 @@ def handle_data():
         return {"count": len(results), "data": results}
 
 
-@routes.route("/api/add", methods=["POST"])
-def pst():
-    """
-    1st api is adding data to db
-
-    Returns:
-        json(dict): added string of data in db
-    """
-    if not request.json:
-        abort(400)
-    feature_1 = request.json["feature_1"]
-    feature_2 = request.json["feature_2"]
-    feature_3 = request.json["feature_3"]
-    feature_4 = request.json["feature_4"]
-    feature_5 = request.json["feature_5"]
-    data = Data(
-        feature_1=feature_1,
-        feature_2=feature_2,
-        feature_3=feature_3,
-        feature_4=feature_4,
-        feature_5=feature_5,
-    )
-    # import data to database
-    db.session.add(data)
-    db.session.commit()
-    last = db.session.query(Data).order_by(Data.id.desc()).first()
-    dic = {x: y for x, y in list(vars(last).items())[1:]}
-    return jsonify(dic)
-
-
-@routes.route("/check", methods=["GET"])
-def gt():
-    """
-    function to view what inside db right now
-
-    Returns:
-        json(dict): dict with all datas in db
-    """
-    data = Data.query.all()
-    # serialized data from database
-    dic = {
-        i + 1: {x: y for x, y in sorted(list(vars(v).items()))[1:-1]}
-        for i, v in enumerate(data)
-    }
-    return jsonify(dic)
-
-
 @routes.route("/api/fit", methods=["POST"])
 def ft():
     """
@@ -119,10 +74,10 @@ def ft():
     )
 
     # fit the model
-    rng = np.random.RandomState(42)
-    global clf
-    clf = IsolationForest(max_samples=100, random_state=rng)
+    clf = IsolationForest(max_samples=100)
     clf.fit(X_train)
+    pickle.dump(clf, open(clf_model_name, "wb"))
+    clf = pickle.load(open(clf_model_name, "rb"))
     return jsonify({"Model learned": str(clf)})
 
 
@@ -150,7 +105,8 @@ def prdct():
             ]
         ]
     )
-    ans = func(clf.estimators_, data)
+    clf = pickle.load(open(clf_model_name, "rb"))
+    ans = algorithm(clf.estimators_, data)
     for i in list(ans["ans"].keys()):
         ans["ans"][sorted(list(vars(db.session.query(Data).first())))[1:-1][i]] = ans[
             "ans"

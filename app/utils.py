@@ -3,7 +3,7 @@ from app import db
 from app.models import Data
 
 
-def algorithm(ens, X):
+def algorithm(clf, X):
     """
     function to create descending feature importances
     Args:
@@ -13,36 +13,33 @@ def algorithm(ens, X):
     Returns:
         dict: descending feature importances
     """
-    dic = {"ans": {}}
-
     try:
-        X.shape[1]
+        s = X.shape[1]
     except (TypeError, IndexError):
+        s = X.shape[0]
         X = np.array([X])
     else:
         pass
 
-    for a in range(X.shape[1]):
-        dic["ans"][a] = 0
+    dic = {"ans": {i: 0 for i in range(s)}}
 
-    for i, clf in enumerate(ens):
-        node_indicator = clf.decision_path(X)
-        leaf_id = clf.apply(X)
-        feature = clf.tree_.feature
+    for tree in clf:
+        node = tree.decision_path(X)
+        leaf_id = tree.apply(X)
+        feature = tree.tree_.feature
 
-        for sample_id in range(len(X)):
+        for sample_id, _ in enumerate(X):
             # obtain ids of the nodes 'sample_id goes through, i.e., row 'sample_id'
-            node_index = node_indicator.indices[
-                node_indicator.indptr[sample_id] : node_indicator.indptr[sample_id + 1]
+            node_index = node.indices[
+                node.indptr[sample_id] : node.indptr[sample_id + 1]
             ]
             for node_id in node_index:
                 # continue to the next node if is a leaf node
                 if leaf_id[sample_id] == node_id:
                     continue
-
-                for k in range(X.shape[1]):
-                    if k == feature[node_id]:
-                        dic["ans"][k] += 1
+                for j in range(s):
+                    if j == feature[node_id]:
+                        dic["ans"][j] += 1
 
     dic["ans"] = {
         k: v

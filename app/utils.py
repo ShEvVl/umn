@@ -42,7 +42,7 @@ def algorithm(clf, X):
                         dic["ans"][j] += 1
 
     dic["ans"] = {
-        k: v
+        k: round(v / sum(dic["ans"].values()) * 100, 2)
         for k, v in sorted(dic["ans"].items(), key=lambda item: item[1], reverse=True)
     }
     return dic

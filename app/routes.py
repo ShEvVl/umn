@@ -10,6 +10,9 @@ from sklearn.ensemble import IsolationForest
 
 routes = Blueprint("routes", __name__)
 
+with open("app/feature_names.txt", "r") as f:
+    features = f.read().strip().split("\n")
+
 
 @routes.route("/")
 def hello():
@@ -107,10 +110,7 @@ def prdct():
     )
     clf = pickle.load(open(clf_model_name, "rb"))
     ans = algorithm(clf.estimators_, data)
-    for i in list(ans["ans"].keys()):
-        ans["ans"][sorted(list(vars(db.session.query(Data).first())))[1:-1][i]] = ans[
-            "ans"
-        ].pop(i)
+    ans["ans"] = {features[n]: v for n, v in ans["ans"].items()}
     if clf.predict(data) == -1:
         anomaly = "anomaly(-1)"
     elif clf.predict(data) == 1:

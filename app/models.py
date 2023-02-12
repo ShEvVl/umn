@@ -5,18 +5,16 @@ class Data(db.Model):
     __tablename__ = "data"
 
     id = db.Column(db.Integer, primary_key=True)
-    feature_1 = db.Column(db.Float)
-    feature_2 = db.Column(db.Float)
-    feature_3 = db.Column(db.Float)
-    feature_4 = db.Column(db.Float)
-    feature_5 = db.Column(db.Float)
+    with open("app/feature_names.txt", "r") as f:
+        num_features = len(f.readlines())
 
-    def __init__(self, feature_1, feature_2, feature_3, feature_4, feature_5):
-        self.feature_1 = feature_1
-        self.feature_2 = feature_2
-        self.feature_3 = feature_3
-        self.feature_4 = feature_4
-        self.feature_5 = feature_5
+    for i in range(num_features):
+        exec(f"feature_{i+1} = db.Column(db.Float, nullable=False)")
+
+    def __init__(self, *features):
+        for i, feature in enumerate(features, start=1):
+            setattr(self, f"feature_{i}", db.Column(db.Float, nullable=False))
+            setattr(self, f"feature_{i}", feature)
 
     def __repr__(self):
         return f"<Data {self.id}>"

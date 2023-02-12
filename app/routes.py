@@ -10,47 +10,63 @@ from sklearn.ensemble import IsolationForest
 
 routes = Blueprint("routes", __name__)
 
-with open("app/feature_names.txt", "r") as f:
-    features = f.read().strip().split("\n")
-
 
 @routes.route("/")
 def hello():
-    return {"hello": "world"}
+    return {
+        "Greetings": [
+            "This is the anomaly detection server",
+            "If you see this message, the server is up",
+        ]
+    }
 
 
 @routes.route("/api/data", methods=["POST", "GET"])
-def handle_data():
+def data_endpoint():
     if request.method == "POST":
-        if request.is_json:
-            data = request.get_json()
-            new_data = Data(
-                feature_1=data["feature_1"],
-                feature_2=data["feature_2"],
-                feature_3=data["feature_3"],
-                feature_4=data["feature_4"],
-                feature_5=data["feature_5"],
-            )
-            db.session.add(new_data)
-            db.session.commit()
-            return {"message": f"data {new_data.id} has been created successfully."}
-        else:
-            return {"error": "The request payload is not in JSON format"}
+        # Read the number of features from the file
+        with open("app/feature_names.txt", "r") as f:
+            num_features = len(f.readlines())
 
-    elif request.method == "GET":
-        datas = Data.query.all()
-        results = [
+        # Get the values from the request
+        values = request.get_json()
+        # Check if the number of values matches the number of features
+        if len(values) != num_features:
+            return (
+                jsonify(
+                    {
+                        "error": "The number of values does not match the number of features"
+                    }
+                ),
+                400,
+            )
+
+        # Create a new data object and add it to the database
+        data = Data(*values)
+        print(vars(data))
+        db.session.add(data)
+        db.session.commit()
+
+        return jsonify({"message": "Data created successfully"}), 201
+
+    if request.method == "GET":
+        # Read the number of features from the file
+        with open("app/feature_names.txt", "r") as f:
+            num_features = len(f.readlines())
+
+        # Get all the data from the database
+        data = Data.query.all()
+
+        # Convert the data to a list of dictionaries
+        data = [
             {
-                "feature_1": value.feature_1,
-                "feature_2": value.feature_2,
-                "feature_3": value.feature_3,
-                "feature_4": value.feature_4,
-                "feature_5": value.feature_5,
+                f"feature_{i}": getattr(d, f"feature_{i}")
+                for i in range(1, num_features + 1)
             }
-            for value in datas
+            for d in data
         ]
 
-        return {"count": len(results), "data": results}
+        return jsonify({"count": len(data), "data": data}), 200
 
 
 @routes.route("/api/fit", methods=["POST"])
@@ -61,17 +77,13 @@ def ft():
     Returns:
         json(dict): "Model learned": info about fitting model
     """
+    with open("app/feature_names.txt", "r") as f:
+        num_features = len(f.readlines())
 
     # collect data from database
     X_train = np.array(
         [
-            [
-                data.feature_1,
-                data.feature_2,
-                data.feature_3,
-                data.feature_4,
-                data.feature_5,
-            ]
+            [getattr(data, f"feature_{i}") for i in range(1, num_features + 1)]
             for data in db.session.query(Data).all()
         ]
     )
@@ -85,34 +97,27 @@ def ft():
 
 
 @routes.route("/api/predict", methods=["POST"])
-def prdct():
+def predict():
     """
-    3rd api is predicting result of model with feature importances
+    API endpoint for making predictions
 
     Returns:
-        json(dict): get "anomaly(-1)" or "normal(1)" and descending features with amount
+        json(dict): returns the predicted class as "anomaly(-1)" or "normal(1)" and the feature importances in descending order.
     """
-    feature_1 = request.json["feature_1"]
-    feature_2 = request.json["feature_2"]
-    feature_3 = request.json["feature_3"]
-    feature_4 = request.json["feature_4"]
-    feature_5 = request.json["feature_5"]
-    data = np.array(
-        [
-            [
-                feature_1,
-                feature_2,
-                feature_3,
-                feature_4,
-                feature_5,
-            ]
-        ]
-    )
+    with open("app/feature_names.txt", "r") as f:
+        features = f.read().strip().split("\n")
+    # Recieve request
+    data = np.array([request.get_json()])
+    # Load the classifier model
     clf = pickle.load(open(clf_model_name, "rb"))
+
+    # Prepare the data for prediction
     ans = algorithm(clf.estimators_, data)
+    # Make the prediction
     ans["ans"] = {features[n]: v for n, v in ans["ans"].items()}
+    display = dict(list(ans["ans"].items())[:15])
     if clf.predict(data) == -1:
         anomaly = "anomaly(-1)"
     elif clf.predict(data) == 1:
         anomaly = "normal(1)"
-    return jsonify({"predicted class": anomaly, "features importances": ans["ans"]})
+    return jsonify({"predicted class": anomaly, "features importances": display})

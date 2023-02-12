@@ -106,8 +106,23 @@ def predict():
     """
     with open("app/feature_names.txt", "r") as f:
         features = f.read().strip().split("\n")
+    with open("app/feature_names.txt", "r") as f:
+        num_features = len(f.readlines())
+
     # Recieve request
     data = np.array([request.get_json()])
+
+    # Check if the number of values matches the number of features
+    if data.shape[1] != num_features:
+        return (
+            jsonify(
+                {
+                    "error": f"The number of values ({data.shape[1]}) does not match the number of features ({num_features})"
+                }
+            ),
+            400,
+        )
+
     # Load the classifier model
     clf = pickle.load(open(clf_model_name, "rb"))
 
